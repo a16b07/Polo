@@ -14,9 +14,6 @@ public class PlayerStats : MonoBehaviour
     [Tooltip("0 = no reduction. Negative = take MORE damage. Not clamped.")]
     public float damageReduction = 0f; // no [Range] — can go negative
 
-    [Header("Health")]
-    public float regeneration = 0f;
-
     [Header("Luck")]
     public float luck = 0f;
 

@@ -47,7 +47,6 @@ public class PerkManager : MonoBehaviour
         _stats.speedMultiplier  = Mathf.Clamp(_stats.speedMultiplier  + p.dSpeed, 0.40f, 3.0f);
         _stats.damageMultiplier = Mathf.Max(0.05f, _stats.damageMultiplier + p.dDamage);
         _stats.damageReduction += p.dDamageReduction; // no clamp — can go negative (more damage taken)
-        _stats.regeneration     = Mathf.Max(0f,    _stats.regeneration     + p.dRegen);
         _stats.luck                  += p.dLuck;
         _stats.projectileSpeedMult = Mathf.Max(0.05f, _stats.projectileSpeedMult + p.dProjSpeed);
         _stats.projectileSizeMult  = Mathf.Max(0.05f, _stats.projectileSizeMult  + p.dProjSize);
@@ -68,7 +67,6 @@ public class PerkManager : MonoBehaviour
                 _stats.speedMultiplier     = Mathf.Clamp(_stats.speedMultiplier     + rolled.dSpeed, 0.40f, 3.0f);
                 _stats.damageMultiplier    = Mathf.Max(0.05f, _stats.damageMultiplier    + rolled.dDamage);
                 _stats.damageReduction    += rolled.dDamageReduction;
-                _stats.regeneration        = Mathf.Max(0f,    _stats.regeneration        + rolled.dRegen);
                 _stats.luck               += rolled.dLuck;
                 _stats.projectileSpeedMult = Mathf.Max(0.05f, _stats.projectileSpeedMult + rolled.dProjSpeed);
                 _stats.projectileSizeMult  = Mathf.Max(0.05f, _stats.projectileSizeMult  + rolled.dProjSize);

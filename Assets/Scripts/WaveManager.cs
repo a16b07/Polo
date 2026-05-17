@@ -14,8 +14,7 @@ public class WaveManager : MonoBehaviour
 
     int   _aliveCount;
     bool  _waveClear;
-
-    GUIStyle _promptStyle;
+    public bool WaveClear => _waveClear;
 
     void Awake() => Instance = this;
 
@@ -41,14 +40,9 @@ public class WaveManager : MonoBehaviour
         if (_aliveCount == 0) _waveClear = true;
     }
 
-    void Update()
-    {
-        if (!_waveClear || PerkManager.IsMenuOpen) return;
-        if (Keyboard.current != null && Keyboard.current.nKey.wasPressedThisFrame)
-            StartNextWave();
-    }
+    public void ForceWaveClear() { _waveClear = true; _aliveCount = 0; }
 
-    void StartNextWave()
+    public void StartNextWave()
     {
         _waveClear  = false;
         _aliveCount = _enemySpawns.Count;
@@ -63,7 +57,8 @@ public class WaveManager : MonoBehaviour
             cc.height = 2.4f;
             cc.center = new Vector3(0f, 1.2f, 0f);
             cc.radius = 0.35f;
-            go.AddComponent<EnemyAI>();
+            var ai = go.AddComponent<EnemyAI>();
+            ai.applyEntranceResize = InteractiveEntrance.WasActivated;
         }
 
         // Reset spheres
@@ -82,23 +77,4 @@ public class WaveManager : MonoBehaviour
         }
     }
 
-    void OnGUI()
-    {
-        if (!_waveClear || PerkManager.IsMenuOpen) return;
-        if (_promptStyle == null)
-        {
-            _promptStyle = new GUIStyle(GUI.skin.label)
-            {
-                font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"),
-                fontSize  = 28,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter
-            };
-            _promptStyle.normal.textColor = new Color(1f, 0.9f, 0.2f);
-        }
-
-        float w = 420, h = 40;
-        GUI.Label(new Rect((Screen.width - w) / 2f, Screen.height / 2f - 20, w, h),
-                  "All enemies defeated!  Press [N] to restart", _promptStyle);
-    }
 }

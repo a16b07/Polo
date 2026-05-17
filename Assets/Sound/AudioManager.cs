@@ -158,6 +158,40 @@ public class AudioManager : MonoBehaviour
     // Volumen
     // -------------------------
 
+    public void MuffleMusic(float holdDuration)
+    {
+        StartCoroutine(MuffleMusicCoroutine(holdDuration));
+    }
+
+    private IEnumerator MuffleMusicCoroutine(float holdDuration)
+    {
+        float elapsed = 0f;
+        float muteIn  = 0.15f;
+        while (elapsed < muteIn)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / muteIn;
+            musicSource.pitch  = Mathf.Lerp(1f, 0.55f, t);
+            musicSource.volume = Mathf.Lerp(musicVolume, musicVolume * 0.2f, t);
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(holdDuration);
+
+        elapsed = 0f;
+        float restoreTime = 2.5f;
+        while (elapsed < restoreTime)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / restoreTime;
+            musicSource.pitch  = Mathf.Lerp(0.55f, 1f, t);
+            musicSource.volume = Mathf.Lerp(musicVolume * 0.2f, musicVolume, t);
+            yield return null;
+        }
+        musicSource.pitch  = 1f;
+        musicSource.volume = musicVolume;
+    }
+
     public void SetMusicVolume(float value)
     {
         musicVolume = Mathf.Clamp01(value);

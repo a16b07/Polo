@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(BoxCollider))]
@@ -27,7 +28,14 @@ public class EnemyAI : MonoBehaviour
     float _patrolTimer;
     Vector3 _patrolCenter;
     bool _resized;
-    bool _dead;
+    bool  _dead;
+    public bool  applyEntranceResize;
+    public float flashStunEnd;
+
+    public static bool DebugOutlineEnabled;
+    GameObject _outlineGO;
+    Material   _outlineMat;
+    float      _outlinePulse;
 
     // Headshot threshold: top 30% of box (2.85u * 0.70 = 2.0u above root)
     public float HeadThreshold => transform.position.y + 2.0f;
@@ -66,8 +74,32 @@ public class EnemyAI : MonoBehaviour
         bodyHitbox.enemy = this;
 
         BuildSprite();
+        BuildDebugOutline();
         EquipWeapon();
         PickPatrolPoint();
+        if (applyEntranceResize) Resize(1.8f, 1.3f);
+    }
+
+    void BuildDebugOutline()
+    {
+        var shader = Shader.Find("Custom/DoorOutline");
+        if (shader == null) return;
+
+        _outlineGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        _outlineGO.name = "DebugOutline";
+        _outlineGO.transform.SetParent(transform, false);
+        _outlineGO.transform.localPosition = new Vector3(0f, 1.425f, 0f);
+        _outlineGO.transform.localScale    = new Vector3(1.5f, 2.85f, 1.0f);
+        Destroy(_outlineGO.GetComponent<Collider>());
+
+        _outlineMat = new Material(shader);
+        _outlineMat.SetColor("_OutlineColor", new Color(1f, 0.25f, 0.15f, 0.9f));
+        _outlineMat.SetFloat("_OutlineWidth", 0.022f);
+        var mr = _outlineGO.GetComponent<MeshRenderer>();
+        mr.material = _outlineMat;
+        mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        mr.receiveShadows    = false;
+        _outlineGO.SetActive(false);
     }
 
     void BuildSprite()
@@ -119,6 +151,15 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
+        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
+            DebugOutlineEnabled = !DebugOutlineEnabled;
+        if (_outlineGO != null) _outlineGO.SetActive(DebugOutlineEnabled && !_dead);
+        if (DebugOutlineEnabled && _outlineMat != null)
+        {
+            _outlinePulse += Time.deltaTime * 4f;
+            _outlineMat.SetFloat("_Pulse", Mathf.Sin(_outlinePulse) * 0.5f + 0.5f);
+        }
+
         if (_dead || _player == null) return;
 
         Vector3 toPlayer = _player.position - transform.position;
@@ -181,13 +222,15 @@ public class EnemyAI : MonoBehaviour
 
     void Shoot()
     {
+        if (Time.time < flashStunEnd) return;
+
         Vector3 origin = _heldWeapon != null
             ? _heldWeapon.transform.position
             : transform.position + Vector3.up * 1.0f;
         Vector3 target = _player.position   + Vector3.up * 1.2f;
         Vector3 dir    = (target - origin).normalized;
 
-        float speed = 32f;
+        float speed = 64f;
         float size  = 0.06f;
 
         var pm = PerkManager.Instance;

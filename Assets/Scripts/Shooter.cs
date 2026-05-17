@@ -107,8 +107,11 @@ public class Shooter : MonoBehaviour
 
         var stats = weaponRoot.GetComponentInChildren<WeaponStats>();
 
+        // No weapon held — don't fire (knife handles its own input)
+        if (stats == null) return;
+
         // Ammo check
-        if (stats != null && !InfiniteAmmo && stats.currentAmmo <= 0) return;
+        if (!InfiniteAmmo && stats.currentAmmo <= 0) return;
 
         if (stats != null)
         {

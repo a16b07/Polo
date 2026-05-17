@@ -1,24 +1,35 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(SphereCollider))]
+[RequireComponent(typeof(CapsuleCollider))]
 [RequireComponent(typeof(Rigidbody))]
 public class RewardSphere : MonoBehaviour
 {
-    public float grabRange = 3.5f;
+    public float grabRange   = 5f;
+    public float tubeRadius  = 1f;
 
-    Camera _cam;
+    Camera  _cam;
     Vector3 _startPos;
-    bool _grabbed;
-    bool _showPrompt;
+    bool    _grabbed;
+    bool    _showPrompt;
 
     void Awake()
     {
-        var rb          = GetComponent<Rigidbody>();
-        rb.mass         = 0.5f;
+        // Remove any leftover SphereCollider from before
+        var old = GetComponent<SphereCollider>();
+        if (old != null) Destroy(old);
+
+        var rb           = GetComponent<Rigidbody>();
+        rb.mass          = 0.5f;
         rb.linearDamping  = 1.5f;
         rb.angularDamping = 1.5f;
-        GetComponent<SphereCollider>().isTrigger = false;
+
+        // CapsuleCollider matches the cylinder mesh (Y axis, full height)
+        var cap       = GetComponent<CapsuleCollider>() ?? gameObject.AddComponent<CapsuleCollider>();
+        cap.direction = 1;
+        cap.radius    = 0.5f;
+        cap.height    = 2f;
+        cap.isTrigger = false;
     }
 
     void Start()
@@ -33,32 +44,66 @@ public class RewardSphere : MonoBehaviour
         aura.pulseSpeed    = 3f;
 
         var mr = GetComponent<MeshRenderer>();
-        if (mr != null)
-        {
-            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = Color.white;
+        if (mr != null) ApplyTexture(mr);
+    }
+
+    void ApplyTexture(MeshRenderer mr)
+    {
+        var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        mat.color = Color.white;
 
 #if UNITY_EDITOR
-            var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/text/fourloko.png");
+        var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/text/fourloko.png");
 #else
-            Texture2D tex = null;
+        Texture2D tex = null;
 #endif
-            if (tex != null)
-            {
-                mat.SetTexture("_BaseMap", tex);
-                mat.EnableKeyword("_EMISSION");
-                mat.SetTexture("_EmissionMap", tex);
-                mat.SetColor("_EmissionColor", Color.white * 0.4f);
-            }
-            else
-            {
-                mat.color = new Color(0.1f, 0.9f, 0.2f);
-                mat.EnableKeyword("_EMISSION");
-                mat.SetColor("_EmissionColor", new Color(0f, 2f, 0.3f));
-            }
+        if (tex != null)
+        {
+            mat.SetTexture("_BaseMap", tex);
+            mat.EnableKeyword("_EMISSION");
+            mat.SetTexture("_EmissionMap", tex);
+            mat.SetColor("_EmissionColor", Color.white * 0.4f);
 
-            mr.material = mat;
+            // Crop UV to non-transparent region so transparent margins don't show
+            CropToOpaque(mat, tex);
         }
+        else
+        {
+            mat.color = new Color(0.1f, 0.9f, 0.2f);
+            mat.EnableKeyword("_EMISSION");
+            mat.SetColor("_EmissionColor", new Color(0f, 2f, 0.3f));
+        }
+
+        mr.material = mat;
+    }
+
+    static void CropToOpaque(Material mat, Texture2D tex)
+    {
+        Color[] pixels = tex.GetPixels();
+        int w = tex.width, h = tex.height;
+        int minX = w, minY = h, maxX = 0, maxY = 0;
+
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            if (pixels[y * w + x].a > 0.05f)
+            {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+            }
+        }
+
+        if (maxX <= minX || maxY <= minY) return; // fully transparent — leave as-is
+
+        float offX  = (float)minX / w;
+        float offY  = (float)minY / h;
+        float scaleX = (float)(maxX - minX + 1) / w;
+        float scaleY = (float)(maxY - minY + 1) / h;
+
+        mat.mainTextureOffset = new Vector2(offX, offY);
+        mat.mainTextureScale  = new Vector2(scaleX, scaleY);
     }
 
     void Update()
@@ -66,15 +111,18 @@ public class RewardSphere : MonoBehaviour
         if (_grabbed) return;
         if (_cam == null) { _cam = Camera.main; return; }
 
-        // SphereCast from camera — same style as GunPickup
+        // Ray-distance check — independent of physics collider size
         _showPrompt = false;
-        int mask = ~(1 << 9); // ignore Props layer so furniture doesn't block detection
-        if (Physics.SphereCast(_cam.transform.position, 0.3f, _cam.transform.forward,
-                               out RaycastHit hit, grabRange, mask)
-            && hit.collider.gameObject == gameObject)
+        Vector3 camPos     = _cam.transform.position;
+        Vector3 camForward = _cam.transform.forward;
+        Vector3 toSphere   = transform.position - camPos;
+        float   along      = Vector3.Dot(toSphere, camForward);
+        float   perpDist   = Vector3.Cross(toSphere, camForward).magnitude;
+
+        if (along >= 0f && along <= grabRange && perpDist <= tubeRadius)
         {
             _showPrompt = true;
-            if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
                 Grab();
         }
     }
@@ -88,12 +136,14 @@ public class RewardSphere : MonoBehaviour
         _grabbed = true;
         var perk = pm.RollNew();
         pm.ShowPerk(perk, null);
+        if (PlayerHealth.Instance != null)
+            PlayerHealth.Instance.Heal(Mathf.RoundToInt(PlayerHealth.Instance.maxHp * 0.15f));
         gameObject.SetActive(false);
     }
 
     public void ResetSphere()
     {
-        _grabbed = false;
+        _grabbed    = false;
         _showPrompt = false;
         var rb = GetComponent<Rigidbody>();
         if (rb != null) { rb.linearVelocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
@@ -114,6 +164,6 @@ public class RewardSphere : MonoBehaviour
         style.normal.textColor = new Color(0.3f, 1f, 0.4f, 0.7f);
         float w = 220, h = 22;
         GUI.Label(new Rect((Screen.width - w) / 2f, Screen.height / 2f + 28, w, h),
-                  "[Right Click] claim reward", style);
+                  "[R] claim reward", style);
     }
 }

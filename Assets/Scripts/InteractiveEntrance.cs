@@ -10,6 +10,8 @@ public class InteractiveEntrance : MonoBehaviour
     [Header("Teleport")]
     public Transform tpTarget;
 
+    public static bool WasActivated { get; private set; }
+
     bool _showPrompt;
     Camera _cam;
     GUIStyle _style;
@@ -35,8 +37,22 @@ public class InteractiveEntrance : MonoBehaviour
         }
     }
 
+    bool _transitioning;
+
     void OnEnter()
     {
+        if (_transitioning) return;
+        _transitioning = true;
+
+        if (TransitionOverlay.Instance != null)
+            TransitionOverlay.Instance.Play(DoEnter);
+        else
+            DoEnter();
+    }
+
+    void DoEnter()
+    {
+        _showPrompt = false;
         if (tpTarget == null) return;
         var player = GameObject.FindGameObjectWithTag("Player");
         if (player == null) return;
@@ -52,6 +68,7 @@ public class InteractiveEntrance : MonoBehaviour
         var fps = player.GetComponent<FPSController>();
         if (fps != null) fps.Resize(1.8f);
 
+        WasActivated = true;
         foreach (var enemy in Object.FindObjectsByType<EnemyAI>(FindObjectsSortMode.None))
             enemy.Resize(1.8f, 1.3f);
 

@@ -22,6 +22,7 @@ public class GunPickup : MonoBehaviour
     [Header("Weapon View")]
     public float weaponFOV = 50f;
 
+    public bool HasWeapon   => _held != null;
     public int CurrentAmmo => _held != null ? (_held.GetComponent<WeaponStats>()?.currentAmmo ?? -1) : -1;
     public int MaxAmmo     => _held != null ? (_held.GetComponent<WeaponStats>()?.maxAmmo     ??  0) :  0;
     public bool IsEmpty    => _held != null && CurrentAmmo == 0;
@@ -194,19 +195,28 @@ void ApplyWeaponBob()
 
     GameObject FindLookTarget()
     {
-        RaycastHit hit;
-        if (!Physics.SphereCast(cam.transform.position, sphereRadius,
-                                 cam.transform.forward, out hit, pickupRange, ~(1 << 9)))
-            return null;
+        Vector3 p1   = cam.transform.position;
+        Vector3 p2   = p1 + cam.transform.forward * pickupRange;
+        var     cols = Physics.OverlapCapsule(p1, p2, sphereRadius, ~(1 << 9));
 
-        Transform t = hit.transform;
-        WeaponStats stats = null;
-        while (t != null && stats == null) { stats = t.GetComponent<WeaponStats>(); t = t.parent; }
-        if (stats == null) return null;
+        GameObject closest     = null;
+        float      closestDist = float.MaxValue;
 
-        var root = stats.gameObject;
-        if (root.transform.IsChildOf(weaponRoot)) return null;
-        return root;
+        foreach (var col in cols)
+        {
+            Transform   t     = col.transform;
+            WeaponStats stats = null;
+            while (t != null && stats == null) { stats = t.GetComponent<WeaponStats>(); t = t.parent; }
+            if (stats == null) continue;
+
+            var root = stats.gameObject;
+            if (root.transform.IsChildOf(weaponRoot)) continue;
+
+            float dist = Vector3.Distance(p1, root.transform.position);
+            if (dist < closestDist) { closestDist = dist; closest = root; }
+        }
+
+        return closest;
     }
 
 void PickUp(GameObject gun)
@@ -280,6 +290,13 @@ void Drop()
 
         _held = null;
         AudioManager.Instance.PlaySFX("GunLaunch");
+    }
+
+    public void ForceRelease()
+    {
+        if (_held == null) return;
+        if (_shooter != null) _shooter.enabled = false;
+        _held = null;
     }
 
     void SetLayerRecursive(GameObject go, int layer)

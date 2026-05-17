@@ -45,7 +45,7 @@ public class StatsMenu : MonoBehaviour
         if (_titleStyle == null) BuildStyles();
 
         float sw = Screen.width, sh = Screen.height;
-        float pw = 400f, ph = 400f;
+        float pw = 400f, ph = 440f;
         float px = (sw - pw) / 2f, py = (sh - ph) / 2f;
 
         GUI.Box(new Rect(px - 12, py - 12, pw + 24, ph + 24), GUIContent.none, _panelStyle);
@@ -55,10 +55,10 @@ public class StatsMenu : MonoBehaviour
         StatRow(px, ry,       pw, rh, "Damage Mult",     $"x{_stats.damageMultiplier:F2}",  _stats.damageMultiplier,  BASE_DAMAGE, true);
         StatRow(px, ry+rh,    pw, rh, "Speed",           $"{_stats.speedMultiplier*100f:F0}%", _stats.speedMultiplier, BASE_SPEED, true);
         StatRow(px, ry+rh*2,  pw, rh, "Damage Reduction",$"{_stats.damageReduction*100f:F0}%", _stats.damageReduction, BASE_DR, true);
-        StatRow(px, ry+rh*3,  pw, rh, "Regeneration",   $"{_stats.regeneration:F1} hp/s",   _stats.regeneration,     BASE_REGEN, true);
         StatRow(px, ry+rh*4,  pw, rh, "Luck",              $"{_stats.luck:F2}",                   _stats.luck,                    BASE_LUCK,  true);
         StatRow(px, ry+rh*5,  pw, rh, "Proj. Speed",       $"x{_stats.projectileSpeedMult:F2}",   _stats.projectileSpeedMult,     1f,         true);
         StatRow(px, ry+rh*6,  pw, rh, "Proj. Size",        $"x{_stats.projectileSizeMult:F2}",    _stats.projectileSizeMult,      1f,         true);
+        StatRow(px, ry+rh*7,  pw, rh, "Max Ammo",          $"x{_stats.maxAmmoMult:F2}",            _stats.maxAmmoMult,             1f,         true);
 
         // Passive perk squares
         if (_perks != null)

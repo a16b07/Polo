@@ -52,7 +52,7 @@ public static class PerkDatabase
         new("rusty_aim",   "Rusty Aim",          "Damage -5%",                          PerkRarity.Common,    PerkType.Nerf, dmg:-0.05f),
         new("thin_skin",   "Thin Skin",          "DR -4%",                              PerkRarity.Common,    PerkType.Nerf, dr:-0.04f),
         new("fumbler",     "Fumbler",            "Luck -0.2",                           PerkRarity.Common,    PerkType.Nerf, lck:-0.2f),
-        new("soft_hands",  "Soft Hands",         "Regen -0.2 hp/s",                     PerkRarity.Common,    PerkType.Nerf, reg:-0.2f),
+        new("soft_hands",  "Soft Hands",         "Speed -2%",                     PerkRarity.Common,    PerkType.Nerf),
         new("heavy_legs",  "Heavy Legs",         "Speed -14%",                          PerkRarity.Uncommon,  PerkType.Nerf, spd:-0.14f),
         new("dull_blade",  "Dull Blade",          "Damage -12%",                         PerkRarity.Uncommon,  PerkType.Nerf, dmg:-0.12f),
         new("slow_ammo",   "Slow Ammo",           "Projectile speed -20%",               PerkRarity.Common,    PerkType.Nerf, ps:-0.20f),
@@ -72,7 +72,7 @@ public static class PerkDatabase
         new("broken",      "Broken",             "Damage -38%",                         PerkRarity.Epic,      PerkType.Nerf, dmg:-0.38f),
         new("marked",      "Marked for Death",   "Luck -2.0, DR -18%, Speed -8%",       PerkRarity.Epic,      PerkType.Nerf, spd:-0.08f, dr:-0.18f, lck:-2.0f),
         new("doomed",      "Doomed",             "Speed -55%, Damage -45%, DR -30%",    PerkRarity.Legendary, PerkType.Nerf, spd:-0.55f, dmg:-0.45f, dr:-0.30f),
-        new("forsaken",    "Forsaken",           "ALL stats -35%",                      PerkRarity.Legendary, PerkType.Nerf, spd:-0.35f, dmg:-0.35f, dr:-0.35f, reg:-2.0f, lck:-1.5f),
+        new("forsaken",    "Forsaken",           "ALL stats -35% (no regen)",                      PerkRarity.Legendary, PerkType.Nerf, spd:-0.35f, dmg:-0.35f, dr:-0.35f, lck:-1.5f),
         new("paralyzed",   "Paralyzed",          "Speed -70%",                          PerkRarity.Legendary, PerkType.Nerf, spd:-0.70f),
         new("cursed_soul", "Cursed Soul",        "Damage -65%, Luck -3.0",              PerkRarity.Legendary, PerkType.Nerf, dmg:-0.65f, lck:-3.0f),
     };
@@ -84,12 +84,12 @@ public static class PerkDatabase
         new("sharp_eye",   "Sharp Eye",          "Damage +7%",                          PerkRarity.Common,    PerkType.Buff, dmg:0.07f),
         new("thick_skin",  "Thick Skin",         "DR +5%",                              PerkRarity.Common,    PerkType.Buff, dr:0.05f),
         new("fortune",     "Fortune's Smile",    "Luck +0.2",                           PerkRarity.Common,    PerkType.Buff, lck:0.2f),
-        new("trickle",     "Trickle Heal",       "Regen +0.3 hp/s",                     PerkRarity.Common,    PerkType.Buff, reg:0.3f),
+        new("trickle",     "Trickle Heal",       "Regen +0.3 hp/s",                     PerkRarity.Common,    PerkType.Buff),
         new("swift",       "Swift",              "Speed +16%",                          PerkRarity.Uncommon,  PerkType.Buff, spd:0.16f),
         new("precision",   "Precision",          "Damage +16%",                         PerkRarity.Uncommon,  PerkType.Buff, dmg:0.16f),
         new("reinforced",  "Reinforced",         "DR +12%",                             PerkRarity.Uncommon,  PerkType.Buff, dr:0.12f),
         new("lucky",       "Lucky",              "Luck +0.5",                           PerkRarity.Uncommon,  PerkType.Buff, lck:0.5f),
-        new("field_medic",   "Field Medic",         "Regen +1.0 hp/s",                     PerkRarity.Uncommon,  PerkType.Buff, reg:1.0f),
+        new("field_medic",   "Field Medic",         "Defense +12%",                     PerkRarity.Uncommon,  PerkType.Buff),
         new("quick_draw",    "Quick Draw",          "Projectile speed +25%",               PerkRarity.Common,    PerkType.Buff, ps:0.25f),
         new("large_caliber", "Large Caliber",       "Projectile size +30%",                PerkRarity.Common,    PerkType.Buff, pz:0.30f),
         new("high_velocity", "High Velocity",       "Projectile speed +55%",               PerkRarity.Rare,      PerkType.Buff, ps:0.55f),
@@ -102,7 +102,7 @@ public static class PerkDatabase
         new("deadly",      "Deadly",             "Damage +28%",                         PerkRarity.Rare,      PerkType.Buff, dmg:0.28f),
         new("armored",     "Armored",            "DR +22%",                             PerkRarity.Rare,      PerkType.Buff, dr:0.22f),
         new("blessed",     "Blessed",            "Luck +1.2",                           PerkRarity.Rare,      PerkType.Buff, lck:1.2f),
-        new("regeneration","Regeneration",       "Regen +2.2 hp/s",                     PerkRarity.Rare,      PerkType.Buff, reg:2.2f),
+        new("regeneration","Regeneration",       "Defense +22%",                     PerkRarity.Rare,      PerkType.Buff),
         new("phantom",     "Phantom",            "Speed +45%",                          PerkRarity.Epic,      PerkType.Buff, spd:0.45f),
         new("explosive_d", "Explosive",          "Damage +45%",                         PerkRarity.Epic,      PerkType.Buff, dmg:0.45f),
         new("fortress",    "Fortress",           "DR +35%",                             PerkRarity.Epic,      PerkType.Buff, dr:0.35f),
@@ -110,7 +110,7 @@ public static class PerkDatabase
         new("god_speed",   "God Speed",          "Speed +90%",                          PerkRarity.Legendary, PerkType.Buff, spd:0.90f),
         new("one_shot",    "One Shot",           "Damage +100%",                        PerkRarity.Legendary, PerkType.Buff, dmg:1.00f),
         new("immortal",    "Immortal Skin",      "DR +60%",                             PerkRarity.Legendary, PerkType.Buff, dr:0.60f),
-        new("apex",        "Apex Predator",      "ALL stats +30%",                      PerkRarity.Legendary, PerkType.Buff, spd:0.30f, dmg:0.30f, dr:0.30f, reg:3.0f, lck:1.5f),
+        new("apex",        "Apex Predator",      "ALL stats +30% (no regen)",                      PerkRarity.Legendary, PerkType.Buff, spd:0.30f, dmg:0.30f, dr:0.30f, lck:1.5f),
     };
 
     // ── NEGATIVE PASSIVES (6% of total) ─────────────────────────────────────
@@ -150,7 +150,7 @@ public static class PerkDatabase
         new("double_jump", "Double Jump",        "You can jump a second time in mid-air",
             PerkRarity.Rare,      PerkType.Perk, flag:"DOUBLE_JUMP"),
         new("leech",       "Leech",              "Hitting enemies slowly boosts your regen",
-            PerkRarity.Uncommon,  PerkType.Perk, reg:0.5f, flag:"LEECH"),
+            PerkRarity.Uncommon,  PerkType.Perk, flag:"LEECH"),
         new("glass_cannon2","Glass Cannon",      "+50% damage but DR -35% — high risk, high reward",
             PerkRarity.Rare,      PerkType.Perk, dmg:0.50f, dr:-0.35f),
         new("iron_skin",   "Iron Skin",          "+40% DR but -15% speed — slow but tough",
@@ -176,9 +176,9 @@ public static class PerkDatabase
         new("adrenaline",  "Adrenaline Rush",    "Killing an enemy gives a brief massive speed boost",
             PerkRarity.Epic,      PerkType.Perk, flag:"ADRENALINE"),
         new("gods_touch",  "God's Touch",        "+18% to ALL stats simultaneously",
-            PerkRarity.Epic,      PerkType.Perk, spd:0.18f, dmg:0.18f, dr:0.18f, reg:2.0f, lck:0.8f),
+            PerkRarity.Epic,      PerkType.Perk, spd:0.18f, dmg:0.18f, dr:0.18f, lck:0.8f),
         new("transcend",   "Transcendence",      "Every stat boosted by 35% — pure ascension",
-            PerkRarity.Legendary, PerkType.Perk, spd:0.35f, dmg:0.35f, dr:0.35f, reg:4.0f, lck:2.0f),
+            PerkRarity.Legendary, PerkType.Perk, spd:0.35f, dmg:0.35f, dr:0.35f, lck:2.0f),
         new("one_man_army","One Man Army",       "Each kill permanently stacks +3% damage (max 45%)",
             PerkRarity.Legendary, PerkType.Perk, flag:"ONE_MAN_ARMY"),
         new("fifty_fifty", "50/50",              "Flip a coin — random buff OR random nerf. Good luck.",
@@ -191,10 +191,10 @@ public static class PerkDatabase
     {
         float r = Random.value;
         List<PerkDefinition> pool;
-        if      (r < 0.63f) pool = Nerfs;
-        else if (r < 0.88f) pool = Buffs;
-        else if (r < 0.94f) pool = NegativePerks;
-        else                pool = PositivePerks;
+        if      (r < 0.30f) pool = Nerfs;           // 30%
+        else if (r < 0.40f) pool = NegativePerks;   // 10%
+        else if (r < 0.90f) pool = Buffs;           // 50%
+        else                pool = PositivePerks;    // 10%
         return PickFromPool(pool);
     }
 
