@@ -66,11 +66,11 @@ public class Bullet : MonoBehaviour
 
         if (!isEnemyBullet)
         {
-            var hitbox    = hit.collider.GetComponent<Hitbox>();
-            bool headshot = hitbox != null && hitbox.isHeadshot;
-            var enemy     = hitbox != null ? hitbox.enemy : hit.collider.GetComponentInParent<EnemyAI>();
+            var hitbox = hit.collider.GetComponent<Hitbox>();
+            var enemy  = hitbox != null ? hitbox.enemy : hit.collider.GetComponentInParent<EnemyAI>();
             if (enemy != null)
             {
+                bool headshot = hit.point.y >= enemy.HeadThreshold;
                 int dmg = headshot ? damage * 2 : damage;
                 enemy.TakeDamage(dmg);
                 HitMarker.Instance?.Show(headshot);
@@ -85,9 +85,8 @@ public class Bullet : MonoBehaviour
         }
         else
         {
-            // Enemy bullet hits player — invulnerable for now
             if (hit.collider.CompareTag("Player"))
-                Debug.Log("AI projectile hit player");
+                PlayerHealth.Instance?.TakeDamage(damage);
         }
     }
 }

@@ -18,15 +18,19 @@ public class EnemyAI : MonoBehaviour
     public float moveSpeed     = 3f;
     public float patrolRadius  = 3f;
 
-    NavMeshAgent _agent;
-    Transform    _player;
-    GameObject   _heldWeapon;
-    int          _damage = 25;
-    float        _nextFireTime;
-    float        _patrolTimer;
-    Vector3      _patrolCenter;
-    bool         _resized;
-    bool         _dead;
+    NavMeshAgent       _agent;
+    Transform          _player;
+    GameObject         _heldWeapon;
+    EnemySpriteAnimator _spriteAnim;
+    int   _damage = 25;
+    float _nextFireTime;
+    float _patrolTimer;
+    Vector3 _patrolCenter;
+    bool _resized;
+    bool _dead;
+
+    // Headshot threshold: top 30% of box (2.85u * 0.70 = 2.0u above root)
+    public float HeadThreshold => transform.position.y + 2.0f;
 
     // Stuck detection
     Vector3 _lastPos;
@@ -37,57 +41,57 @@ public class EnemyAI : MonoBehaviour
         _agent  = GetComponent<NavMeshAgent>();
         _player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
-        _agent.speed                  = moveSpeed;
-        _agent.angularSpeed           = 0f;
-        _agent.updateRotation         = false;
-        _agent.stoppingDistance       = 4f;
-        _agent.radius                 = 0.7f;
-        _agent.height                 = 2.4f;
-        _agent.obstacleAvoidanceType  = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
-        _agent.avoidancePriority      = Random.Range(20, 80);
+        _agent.speed                 = moveSpeed;
+        _agent.angularSpeed          = 0f;
+        _agent.updateRotation        = false;
+        _agent.stoppingDistance      = 9f;
+        _agent.radius                = 2.1f;
+        _agent.height                = 2.4f;
+        _agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
+        _agent.avoidancePriority     = Random.Range(20, 80);
 
         _patrolCenter = transform.position;
         _lastPos      = transform.position;
 
-        // Replace any stale CapsuleCollider with a BoxCollider
         var oldCap = GetComponent<CapsuleCollider>();
         if (oldCap != null) Destroy(oldCap);
 
+        // Single box covering the full sprite — headshot determined by hit.point.y in Bullet
         var box    = GetComponent<BoxCollider>() ?? gameObject.AddComponent<BoxCollider>();
-        box.center = new Vector3(0f, 1.2f, 0f);
-        box.size   = new Vector3(0.55f, 2.5f, 0.55f);
+        box.center = new Vector3(0f, 1.425f, 0f);
+        box.size   = new Vector3(1.5f, 2.85f, 1.0f);
+        box.isTrigger = false;
 
-        var bodyHitbox        = gameObject.AddComponent<Hitbox>();
-        bodyHitbox.isHeadshot = false;
-        bodyHitbox.enemy      = this;
+        var bodyHitbox   = gameObject.AddComponent<Hitbox>();
+        bodyHitbox.enemy = this;
 
-        var headGO = new GameObject("HeadHitbox");
-        headGO.transform.SetParent(transform);
-        headGO.transform.localPosition = new Vector3(0f, 2.25f, 0f);
-        var headCol        = headGO.AddComponent<SphereCollider>();
-        headCol.radius     = 0.32f;
-        var headHitbox     = headGO.AddComponent<Hitbox>();
-        headHitbox.isHeadshot = true;
-        headHitbox.enemy      = this;
-
-        BuildModel();
+        BuildSprite();
         EquipWeapon();
-
         PickPatrolPoint();
     }
 
-    void BuildModel()
+    void BuildSprite()
     {
-        var body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        body.name = "Body";
-        body.transform.SetParent(transform);
-        body.transform.localPosition = new Vector3(0f, 1.2f, 0f);
-        body.transform.localScale    = new Vector3(0.35f, 1.2f, 0.05f);
-        Destroy(body.GetComponent<Collider>());
+        var sprites = Resources.LoadAll<Sprite>("Sprites/poloEnemy");
+        if (sprites == null || sprites.Length < 8)
+        {
+            Debug.LogWarning("EnemyAI: could not load poloEnemy sprites from Resources/Sprites/");
+            return;
+        }
 
-        var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        mat.color = new Color(0.1f, 0.3f, 1f);
-        body.GetComponent<MeshRenderer>().material = mat;
+        System.Array.Sort(sprites, (a, b) =>
+            string.Compare(a.name, b.name, System.StringComparison.Ordinal));
+
+        var walkFrames  = new Sprite[] { sprites[0], sprites[1], sprites[2], sprites[3] };
+        var deathFrames = new Sprite[] { sprites[4], sprites[5], sprites[6], sprites[7] };
+
+        var spriteGO = new GameObject("Sprite");
+        spriteGO.transform.SetParent(transform);
+        spriteGO.transform.localPosition = Vector3.zero;
+        spriteGO.transform.localScale    = Vector3.one;
+
+        _spriteAnim = spriteGO.AddComponent<EnemySpriteAnimator>();
+        _spriteAnim.Init(walkFrames, deathFrames);
     }
 
     void EquipWeapon()
@@ -101,14 +105,13 @@ public class EnemyAI : MonoBehaviour
         var clone = Instantiate(chosen.gameObject);
         clone.name = chosen.weaponName + "_AI";
 
-        var rb   = clone.GetComponent<Rigidbody>();    if (rb   != null) Destroy(rb);
-        var aura = clone.GetComponent<GunAura>();      if (aura != null) Destroy(aura);
+        var rb   = clone.GetComponent<Rigidbody>();  if (rb   != null) Destroy(rb);
+        var aura = clone.GetComponent<GunAura>();    if (aura != null) Destroy(aura);
         foreach (var c in clone.GetComponents<Collider>()) Destroy(c);
 
         clone.transform.SetParent(transform);
-        clone.transform.localPosition = chosen.heldPosition != Vector3.zero
-            ? chosen.heldPosition : new Vector3(0.3f, 1.2f, 0.4f);
-        clone.transform.localRotation = Quaternion.Euler(chosen.heldRotation);
+        clone.transform.localPosition = new Vector3(0.26f, 1.63f, 0.38f);
+        clone.transform.localRotation = Quaternion.Euler(0f, 168.82f, 0f);
         clone.transform.localScale    = Vector3.one;
 
         _heldWeapon = clone;
@@ -116,9 +119,8 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
-        if (_player == null) return;
+        if (_dead || _player == null) return;
 
-        // Always face player
         Vector3 toPlayer = _player.position - transform.position;
         toPlayer.y = 0f;
         if (toPlayer.sqrMagnitude > 0.01f)
@@ -126,13 +128,11 @@ public class EnemyAI : MonoBehaviour
 
         float dist = toPlayer.magnitude;
 
-        // Navigate
         if (dist <= chaseDistance)
             _agent.SetDestination(_player.position);
         else
             Patrol();
 
-        // Stuck detection — pick new patrol point if barely moving for 2s
         _stuckTimer += Time.deltaTime;
         if (_stuckTimer >= 2f)
         {
@@ -142,11 +142,18 @@ public class EnemyAI : MonoBehaviour
             _stuckTimer = 0f;
         }
 
-        // Shoot
         if (Time.time >= _nextFireTime)
         {
             Shoot();
             _nextFireTime = Time.time + fireInterval;
+        }
+
+        if (_spriteAnim != null)
+        {
+            bool moving = _agent.velocity.magnitude > 0.1f;
+            _spriteAnim.SetState(moving
+                ? EnemySpriteAnimator.State.Walking
+                : EnemySpriteAnimator.State.Idle);
         }
     }
 
@@ -174,7 +181,9 @@ public class EnemyAI : MonoBehaviour
 
     void Shoot()
     {
-        Vector3 origin = transform.position + Vector3.up * 1.5f;
+        Vector3 origin = _heldWeapon != null
+            ? _heldWeapon.transform.position
+            : transform.position + Vector3.up * 1.0f;
         Vector3 target = _player.position   + Vector3.up * 1.2f;
         Vector3 dir    = (target - origin).normalized;
 
@@ -194,20 +203,20 @@ public class EnemyAI : MonoBehaviour
         go.transform.position = origin;
         go.transform.rotation = Quaternion.LookRotation(dir);
 
-        var b             = go.AddComponent<Bullet>();
-        b.damage          = _damage;
-        b.speed           = speed;
-        b.radius          = size;
-        b.isEnemyBullet   = true;
-        b.bulletColor     = new Color(1f, 0.15f, 0.05f);
+        var b           = go.AddComponent<Bullet>();
+        b.damage        = _damage;
+        b.speed         = speed;
+        b.radius        = size;
+        b.isEnemyBullet = true;
+        b.bulletColor   = new Color(1f, 0.15f, 0.05f);
 
-        StartCoroutine(MuzzleFlash(origin));
+        StartCoroutine(MuzzleFlash(origin, dir));
     }
 
-    System.Collections.IEnumerator MuzzleFlash(Vector3 pos)
+    System.Collections.IEnumerator MuzzleFlash(Vector3 pos, Vector3 dir)
     {
         var go = new GameObject("EnemyMuzzle");
-        go.transform.position = pos + transform.forward * 0.5f;
+        go.transform.position = pos + dir * 0.4f;
         var light       = go.AddComponent<Light>();
         light.type      = LightType.Point;
         light.color     = new Color(1f, 0.3f, 0.1f);
@@ -230,16 +239,15 @@ public class EnemyAI : MonoBehaviour
         if (_resized) return;
         _resized = true;
 
-        var body = transform.Find("Body");
-        if (body != null) body.localScale = new Vector3(body.localScale.x, body.localScale.y * heightMult, body.localScale.z);
-
         _agent.height = _agent.height * heightMult;
         _agent.radius = _agent.radius * areaMult;
         patrolRadius  = patrolRadius  * areaMult;
 
-        // Scale held weapon
+        if (_spriteAnim != null)
+            _spriteAnim.transform.localScale *= heightMult;
+
         if (_heldWeapon != null)
-            _heldWeapon.transform.localScale = _heldWeapon.transform.localScale * areaMult;
+            _heldWeapon.transform.localScale *= areaMult;
     }
 
     void Die()
@@ -248,8 +256,12 @@ public class EnemyAI : MonoBehaviour
         _dead = true;
         OnAnyEnemyDied?.Invoke();
 
+        _agent.isStopped = true;
+        _agent.enabled   = false;
+
         if (_heldWeapon != null)
         {
+            foreach (var r in _heldWeapon.GetComponentsInChildren<Renderer>()) r.enabled = true;
             _heldWeapon.transform.SetParent(null);
             _heldWeapon.transform.localScale = Vector3.one;
 
@@ -262,6 +274,10 @@ public class EnemyAI : MonoBehaviour
             cap.direction = 2; cap.radius = 0.15f; cap.height = 0.6f;
             _heldWeapon.AddComponent<GunAura>();
         }
-        Destroy(gameObject);
+
+        if (_spriteAnim != null)
+            _spriteAnim.PlayDeath();
+        else
+            Destroy(gameObject);
     }
 }
