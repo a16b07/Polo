@@ -222,6 +222,7 @@ public class EnemyAI : MonoBehaviour
     {
         health -= dmg;
         if (health <= 0) Die();
+        AudioManager.Instance.PlaySFX("GreatHit");
     }
 
     public void Resize(float heightMult, float areaMult = 1f)

@@ -274,10 +274,12 @@ void Drop()
         else
         {
             _held.AddComponent<ThrownWeaponDamage>();
+            
             _held.AddComponent<GunAura>();
         }
 
         _held = null;
+        AudioManager.Instance.PlaySFX("GunLaunch");
     }
 
     void SetLayerRecursive(GameObject go, int layer)

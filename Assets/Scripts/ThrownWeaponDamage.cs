@@ -19,6 +19,7 @@ public class ThrownWeaponDamage : MonoBehaviour
         {
             _hit = true;
             enemy.TakeDamage(damage);
+            AudioManager.Instance.PlaySFX("GreatHit");
         }
 
         Destroy(this); // one damage instance per throw
