@@ -99,6 +99,8 @@ public class Shooter : MonoBehaviour
         float projSpeed  = 55f;
         float projSize   = 0.05f;
 
+        
+
         float wBaseSpread  = baseSpread;
         float wMaxSpread   = maxSpread;
         float wHeatPerShot = heatPerShot;
@@ -157,6 +159,10 @@ public class Shooter : MonoBehaviour
         }
 
         StartCoroutine(Flash());
+
+        AudioManager.Instance.PlaySFX("ShootLight");
+        //AudioManager.Instance.PlaySFX("ShootHeavy");
+        //AudioManager.Instance.PlaySFX("ShootGun");
     }
 
     void SpawnBullet(Vector3 origin, Vector3 dir, int dmg, float speed, float size)

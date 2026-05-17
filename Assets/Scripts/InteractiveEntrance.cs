@@ -45,6 +45,9 @@ public class InteractiveEntrance : MonoBehaviour
         player.transform.position = tpTarget.position;
         if (cc != null) cc.enabled = true;
 
+        AudioManager.Instance.StopDiscoMusic(1.5f);
+        AudioManager.Instance.PlayMusic(AudioManager.MusicTrack.Level1, 1.5f);
+
         // 80% taller, areas and weapons 30% bigger
         var fps = player.GetComponent<FPSController>();
         if (fps != null) fps.Resize(1.8f);

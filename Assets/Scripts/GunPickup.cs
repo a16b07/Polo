@@ -231,6 +231,8 @@ void PickUp(GameObject gun)
 
         SetLayerRecursive(gun, WeaponLayer);
 
+        AudioManager.Instance.PlaySFX("GunPickup");
+
         _held = gun;
         if (promptText != null) promptText.gameObject.SetActive(false);
         if (_shooter   != null) _shooter.enabled = true;
