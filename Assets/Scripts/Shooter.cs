@@ -163,10 +163,9 @@ public class Shooter : MonoBehaviour
 
         StartCoroutine(Flash());
 
-        AudioManager.Instance.PlaySFX("ShootLight");
-        //AudioManager.Instance.PlaySFX("ShootHeavy");
-        //AudioManager.Instance.PlaySFX("ShootGun");
-    }
+        if (stats != null && !string.IsNullOrEmpty(stats.shootSFX))
+        AudioManager.Instance.PlaySFX(stats.shootSFX);
+        }
 
     void SpawnBullet(Vector3 origin, Vector3 dir, int dmg, float speed, float size)
     {

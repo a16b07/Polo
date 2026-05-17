@@ -25,6 +25,7 @@ public class PlayerHealth : MonoBehaviour
         float reduction = _stats != null ? _stats.damageReduction : 0f;
         int finalDmg = Mathf.Max(1, Mathf.RoundToInt(dmg * (1f - reduction)));
         currentHp = Mathf.Max(0, currentHp - finalDmg);
+        AudioManager.Instance.PlaySFX("PlayerHurt");
         OnDamaged?.Invoke();
         if (currentHp <= 0) Die();
     }
@@ -37,5 +38,6 @@ public class PlayerHealth : MonoBehaviour
     {
         var menu = FindFirstObjectByType<MainMenu>();
         if (menu != null) menu.TriggerGameOver();
+        AudioManager.Instance.StopMusic(0.2f);
     }
 }

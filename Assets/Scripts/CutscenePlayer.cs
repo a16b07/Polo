@@ -38,7 +38,7 @@ public class CutscenePlayer : MonoBehaviour
     {
         _onComplete = onComplete;
         _goodEnding = goodEnding;
-
+    
         var player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
@@ -49,7 +49,7 @@ public class CutscenePlayer : MonoBehaviour
         }
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible   = true;
-
+        AudioManager.Instance.PlayMusic(AudioManager.MusicTrack.Cinematic);
         StartCoroutine(PlayRoutine());
     }
 
@@ -96,10 +96,15 @@ public class CutscenePlayer : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible   = false;
 
+        AudioManager.Instance.StopMusic(0.05f);
+        
+
         if (TransitionOverlay.Instance != null)
             TransitionOverlay.Instance.Play(_onComplete);
         else
             _onComplete?.Invoke();
+
+        
     }
 
     void OnGUI()

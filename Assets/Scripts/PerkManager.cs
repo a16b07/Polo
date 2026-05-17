@@ -80,6 +80,7 @@ public class PerkManager : MonoBehaviour
         }
         AcquiredPerks.Add(p);
         AddNotification(p);
+        AudioManager.Instance.PlaySFX("Glup");
     }
 
     // ── Popup notifications ──────────────────────────────────────────────────

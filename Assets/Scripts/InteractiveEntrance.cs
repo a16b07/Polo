@@ -41,6 +41,8 @@ public class InteractiveEntrance : MonoBehaviour
 
     void OnEnter()
     {
+        AudioManager.Instance.StopMusic(0.05f);
+        AudioManager.Instance.PlayMusic(AudioManager.MusicTrack.Level1);
         if (_transitioning) return;
         _transitioning = true;
 

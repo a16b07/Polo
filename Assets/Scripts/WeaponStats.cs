@@ -28,6 +28,9 @@ public class WeaponStats : MonoBehaviour
     public int maxAmmo = 30;
     [HideInInspector] public int currentAmmo;
 
+    [Header("Audio")]
+    public string shootSFX = "ShootLight";
+
     void Awake()
     {
         int min = Mathf.Max(1, Mathf.CeilToInt(maxAmmo * 0.20f));

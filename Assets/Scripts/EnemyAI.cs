@@ -104,7 +104,7 @@ public class EnemyAI : MonoBehaviour
 
     void BuildSprite()
     {
-        var sprites = Resources.LoadAll<Sprite>("Sprites/poloEnemy");
+        var sprites = Resources.LoadAll<Sprite>("Sprites/poloEnemyColor");
         if (sprites == null || sprites.Length < 8)
         {
             Debug.LogWarning("EnemyAI: could not load poloEnemy sprites from Resources/Sprites/");

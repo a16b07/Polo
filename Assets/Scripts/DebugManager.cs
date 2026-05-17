@@ -26,6 +26,16 @@ public class DebugManager : MonoBehaviour
             else
                 Debug.LogWarning("WaveManager not found");
         }
+
+        if (Keyboard.current.f10Key.wasPressedThisFrame)
+{
+    var enemies = FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
+    foreach (var enemy in enemies)
+        enemy.TakeDamage(99999);
+    Debug.Log($"[Debug] Killed {enemies.Length} enemies");
+}
     }
+
+    
 
 }
