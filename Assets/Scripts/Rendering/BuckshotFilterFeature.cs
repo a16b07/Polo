@@ -22,6 +22,7 @@ public class BuckshotFilterFeature : ScriptableRendererFeature
         [Range(0f,1f)]   public float grainStrength = 0.2f;
         public Color tintColor = new Color(0.95f, 1.03f, 0.9f, 1f);
         [Range(0f,1f)]   public float tintStrength = 0.15f;
+        [Range(0.1f,3f)] public float gamma = 1f;
     }
 
     public Settings settings = new Settings();
@@ -65,6 +66,7 @@ public class BuckshotFilterFeature : ScriptableRendererFeature
         static readonly int ID_Grain          = Shader.PropertyToID("_GrainStrength");
         static readonly int ID_TintColor      = Shader.PropertyToID("_TintColor");
         static readonly int ID_TintStrength   = Shader.PropertyToID("_TintStrength");
+        static readonly int ID_Gamma          = Shader.PropertyToID("_Gamma");
 
         class PassData { public TextureHandle src; public TextureHandle dst; public Material mat; }
 
@@ -86,49 +88,36 @@ public class BuckshotFilterFeature : ScriptableRendererFeature
             _mat.SetFloat(ID_Grain,       _s.grainStrength);
             _mat.SetVector(ID_TintColor,  (Vector4)_s.tintColor);
             _mat.SetFloat(ID_TintStrength,_s.tintStrength);
+            _mat.SetFloat(ID_Gamma,       _s.gamma);
         }
 
-        public override void RecordRenderGraph(RenderGraph rg, ContextContainer frameData)
+public override void RecordRenderGraph(RenderGraph rg, ContextContainer frameData)
+{
+    var res = frameData.Get<UniversalResourceData>();
+    var cam = frameData.Get<UniversalCameraData>();
+    if (cam.cameraType == CameraType.Preview) return;
+
+    SetProps();
+    TextureHandle src = res.activeColorTexture;
+    var desc = cam.cameraTargetDescriptor;
+    desc.depthBufferBits = 0;
+    TextureHandle temp = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_BuckshotTemp", false, FilterMode.Bilinear);
+
+    using (var b = rg.AddUnsafePass<PassData>("BuckshotFilter", out var d))
+    {
+        d.src = src; d.dst = temp; d.mat = _mat;
+        b.UseTexture(src, AccessFlags.Read);
+        b.UseTexture(temp, AccessFlags.Write);
+        b.SetRenderFunc((PassData data, UnsafeGraphContext ctx) =>
         {
-            var res    = frameData.Get<UniversalResourceData>();
-            var cam    = frameData.Get<UniversalCameraData>();
-            if (cam.cameraType == CameraType.Preview) return;
+            var cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+            cmd.SetRenderTarget(data.dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            cmd.SetGlobalTexture(ID_Tex, data.src);
+            Blitter.BlitTexture(cmd, new Vector4(1,1,0,0), data.mat, 0);
+        });
+    }
 
-            SetProps();
-            TextureHandle src  = res.activeColorTexture;
-            var desc = cam.cameraTargetDescriptor;
-            desc.depthBufferBits = 0;
-            TextureHandle temp = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_BuckshotTemp", false, FilterMode.Bilinear);
-
-            // Pass 0: filter  src -> temp
-            using (var b = rg.AddUnsafePass<PassData>("BuckshotFilter", out var d))
-            {
-                d.src = src; d.dst = temp; d.mat = _mat;
-                b.UseTexture(src, AccessFlags.Read);
-                b.UseTexture(temp, AccessFlags.Write);
-                b.SetRenderFunc((PassData data, UnsafeGraphContext ctx) =>
-                {
-                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
-                    cmd.SetRenderTarget(data.dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    cmd.SetGlobalTexture(ID_Tex, data.src);
-                    Blitter.BlitTexture(cmd, new Vector4(1,1,0,0), data.mat, 0);
-                });
-            }
-
-            // Pass 1 (copy pass in shader): temp -> src
-            using (var b = rg.AddUnsafePass<PassData>("BuckshotCopyBack", out var d))
-            {
-                d.src = temp; d.dst = src; d.mat = _mat;
-                b.UseTexture(temp, AccessFlags.Read);
-                b.UseTexture(src, AccessFlags.Write);
-                b.SetRenderFunc((PassData data, UnsafeGraphContext ctx) =>
-                {
-                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
-                    cmd.SetRenderTarget(data.dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    cmd.SetGlobalTexture(ID_Tex, data.src);
-                    Blitter.BlitTexture(cmd, new Vector4(1,1,0,0), data.mat, 1);
-                });
-            }
-        }
+    res.cameraColor = temp;
+}
     }
 }

@@ -21,6 +21,7 @@ Shader "Custom/BuckshotRouletteFilter"
             float  _EnablePosterize; float _ColorLevels; float _DitherStrength;
             float  _ChromAberration; float _VignetteStrength; float _GrainStrength;
             float4 _TintColor; float _TintStrength;
+            float  _Gamma;
 
             float BayerDither(float2 uv, float2 res)
             {
@@ -50,6 +51,7 @@ Shader "Custom/BuckshotRouletteFilter"
                 float2 vUV = uv - 0.5; col *= saturate(1.0 - dot(vUV,vUV)*_VignetteStrength*0.8);
                 col += (Hash(uv,_Time.y) - 0.5) * _GrainStrength;
                 col = lerp(col, col * _TintColor.rgb, _TintStrength);
+                col = pow(max(col, 0.0001), 1.0 / max(_Gamma, 0.01));
                 return half4(saturate(col), 1.0);
             }
             ENDHLSL

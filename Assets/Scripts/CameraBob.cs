@@ -24,9 +24,11 @@ void Update()
         delta.y         = 0f;
         _prevRootPos    = rootPos;
 
-        bool grounded = Physics.Raycast(
-            transform.root.position + Vector3.up * 0.2f, Vector3.down, 1.5f);
-        bool moving = grounded && delta.magnitude / Time.deltaTime > 0.5f;
+        var cc       = transform.root.GetComponent<CharacterController>();
+        var fps      = transform.root.GetComponent<FPSController>();
+        bool grounded = cc != null && cc.isGrounded;
+        bool crouching = fps != null && fps.IsCrouching;
+        bool moving   = grounded && !crouching && delta.magnitude / Time.deltaTime > 0.5f;
 
         _currentAmp = Mathf.Lerp(_currentAmp, moving ? amplitude : 0f, Time.deltaTime * smoothReturn);
         _t += Time.deltaTime * frequency;

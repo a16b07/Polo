@@ -9,6 +9,22 @@ public class StatsMenu : MonoBehaviour
     GUIStyle     _titleStyle, _labelStyle, _valueStyle, _deltaGreen, _deltaRed;
     GUIStyle     _squareStyle, _tooltipStyle, _panelStyle;
 
+    readonly Dictionary<string, Texture2D> _perkIcons = new Dictionary<string, Texture2D>();
+
+    Texture2D GetPerkIcon(string id)
+    {
+        if (_perkIcons.TryGetValue(id, out var cached)) return cached;
+        Texture2D tex = null;
+        if (PerkDatabase.SpriteMap.TryGetValue(id, out var filename))
+        {
+#if UNITY_EDITOR
+            tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/sprites buffs/" + filename);
+#endif
+        }
+        _perkIcons[id] = tex;
+        return tex;
+    }
+
     // Base values (what stats start at)
     const float BASE_SPEED  = 1f;
     const float BASE_DAMAGE = 1f;
@@ -70,10 +86,9 @@ public class StatsMenu : MonoBehaviour
                     GUI.Box(rect, GUIContent.none, _squareStyle);
                     GUI.color = Color.white;
 
-                    // First letter of perk name
-                    _labelStyle.normal.textColor = Color.black;
-                    GUI.Label(new Rect(rect.x + 6, rect.y + 4, sqSz, sqSz), p.name[0].ToString(), _labelStyle);
-                    _labelStyle.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
+                    var icon = GetPerkIcon(p.id);
+                    if (icon != null)
+                        GUI.DrawTexture(new Rect(rect.x + 2, rect.y + 2, sqSz - 4, sqSz - 4), icon, ScaleMode.ScaleToFit);
 
                     if (rect.Contains(Event.current.mousePosition))
                     {
@@ -125,7 +140,7 @@ public class StatsMenu : MonoBehaviour
         var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         _panelStyle = new GUIStyle(GUI.skin.box);
-        _panelStyle.normal.background = MakeTex(2, 2, new Color(0.04f, 0.04f, 0.08f, 0.92f));
+        _panelStyle.normal.background = MakeTex(2, 2, new Color(0.06f, 0.06f, 0.12f, 1f));
 
         _titleStyle = Style(font, 22, FontStyle.Bold, TextAnchor.MiddleLeft, Color.white);
         _labelStyle = Style(font, 16, FontStyle.Normal, TextAnchor.MiddleLeft, new Color(0.75f, 0.75f, 0.75f));

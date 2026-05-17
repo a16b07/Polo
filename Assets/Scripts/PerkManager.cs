@@ -44,7 +44,7 @@ public class PerkManager : MonoBehaviour
     void ApplyPerk(PerkDefinition p)
     {
         if (_stats == null) return;
-        _stats.speedMultiplier  = Mathf.Max(0.05f, _stats.speedMultiplier  + p.dSpeed);
+        _stats.speedMultiplier  = Mathf.Clamp(_stats.speedMultiplier  + p.dSpeed, 0.40f, 3.0f);
         _stats.damageMultiplier = Mathf.Max(0.05f, _stats.damageMultiplier + p.dDamage);
         _stats.damageReduction += p.dDamageReduction; // no clamp — can go negative (more damage taken)
         _stats.regeneration     = Mathf.Max(0f,    _stats.regeneration     + p.dRegen);
@@ -59,6 +59,25 @@ public class PerkManager : MonoBehaviour
             {
                 var shooter = FindFirstObjectByType<Shooter>();
                 if (shooter != null) shooter._infAmmoTimer = 30f;
+            }
+            else if (p.specialFlag == "FIFTY_FIFTY")
+            {
+                bool win   = Random.value < 0.5f;
+                var  pool  = win ? PerkDatabase.Buffs : PerkDatabase.Nerfs;
+                var  rolled = pool[Random.Range(0, pool.Count)];
+                _stats.speedMultiplier     = Mathf.Clamp(_stats.speedMultiplier     + rolled.dSpeed, 0.40f, 3.0f);
+                _stats.damageMultiplier    = Mathf.Max(0.05f, _stats.damageMultiplier    + rolled.dDamage);
+                _stats.damageReduction    += rolled.dDamageReduction;
+                _stats.regeneration        = Mathf.Max(0f,    _stats.regeneration        + rolled.dRegen);
+                _stats.luck               += rolled.dLuck;
+                _stats.projectileSpeedMult = Mathf.Max(0.05f, _stats.projectileSpeedMult + rolled.dProjSpeed);
+                _stats.projectileSizeMult  = Mathf.Max(0.05f, _stats.projectileSizeMult  + rolled.dProjSize);
+                _stats.maxAmmoMult         = Mathf.Max(0.05f, _stats.maxAmmoMult         + rolled.dMaxAmmoMult);
+                string arrow = win ? "▲" : "▼";
+                string result = win ? "LUCKY" : "UNLUCKY";
+                _notes.Add(new Notification { text = $"★ 50/50 {result}: {arrow} {rolled.name}", col = new Color(1f, 0.65f, 0f), t = 5f });
+                AcquiredPerks.Add(rolled);
+                return;
             }
         }
         AcquiredPerks.Add(p);

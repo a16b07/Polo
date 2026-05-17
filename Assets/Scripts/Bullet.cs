@@ -46,7 +46,8 @@ public class Bullet : MonoBehaviour
     {
         float step = speed * Time.deltaTime;
 
-        if (Physics.SphereCast(transform.position, radius, transform.forward, out RaycastHit hit, step))
+        int mask = ~(1 << 9); // ignore layer 9 (Props) so bullets pass through furniture
+        if (Physics.SphereCast(transform.position, radius, transform.forward, out RaycastHit hit, step, mask))
         {
             OnHit(hit);
             if (!piercing || isEnemyBullet) { Destroy(gameObject); return; }
@@ -65,10 +66,14 @@ public class Bullet : MonoBehaviour
 
         if (!isEnemyBullet)
         {
-            var enemy = hit.collider.GetComponentInParent<EnemyAI>();
+            var hitbox    = hit.collider.GetComponent<Hitbox>();
+            bool headshot = hitbox != null && hitbox.isHeadshot;
+            var enemy     = hitbox != null ? hitbox.enemy : hit.collider.GetComponentInParent<EnemyAI>();
             if (enemy != null)
             {
-                enemy.TakeDamage(damage);
+                int dmg = headshot ? damage * 2 : damage;
+                enemy.TakeDamage(dmg);
+                HitMarker.Instance?.Show(headshot);
                 if (explosiveRounds)
                     foreach (var col in Physics.OverlapSphere(hit.point, 2.5f))
                     {

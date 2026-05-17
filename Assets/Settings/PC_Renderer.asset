@@ -68,22 +68,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3171d34063e933947958c5580898d4e5, type: 3}
   m_Name: BuckshotFilterFeature
   m_EditorClassIdentifier: Assembly-CSharp::BuckshotFilterFeature
-  m_Active: 0
+  m_Active: 1
   settings:
-    renderPassEvent: 550
-    exposure: 1
-    contrast: 1.05
-    saturation: 0.9
+    renderPassEvent: 150
+    exposure: 1.211
+    contrast: 1.061
+    saturation: 1.12
     enablePixelate: 1
-    pixelFactor: 2
-    enablePosterize: 1
-    colorLevels: 8
-    ditherStrength: 0.35
-    chromAberration: 0.35
-    vignetteStrength: 1
-    grainStrength: 0.2
-    tintColor: {r: 0.95, g: 1.03, b: 0.9, a: 1}
-    tintStrength: 0.15
+    pixelFactor: 2.01
+    enablePosterize: 0
+    colorLevels: 15.34
+    ditherStrength: 0.135
+    chromAberration: 0.92
+    vignetteStrength: 0.57
+    grainStrength: 0.063
+    tintColor: {r: 1, g: 1, b: 1, a: 1}
+    tintStrength: 0.547
+    gamma: 1
 --- !u!114 &7833122117494664109
 MonoBehaviour:
   m_ObjectHideFlags: 0

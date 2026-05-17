@@ -23,6 +23,8 @@ public class FPSController : MonoBehaviour
     bool _sprintHeld;
     bool _crouchHeld;
     bool _canDoubleJump;
+    public bool IsCrouching => _crouchHeld;
+
 
     Transform _camTransform;
     float     _camStandY;

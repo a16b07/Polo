@@ -181,6 +181,8 @@ public static class PerkDatabase
             PerkRarity.Legendary, PerkType.Perk, spd:0.35f, dmg:0.35f, dr:0.35f, reg:4.0f, lck:2.0f),
         new("one_man_army","One Man Army",       "Each kill permanently stacks +3% damage (max 45%)",
             PerkRarity.Legendary, PerkType.Perk, flag:"ONE_MAN_ARMY"),
+        new("fifty_fifty", "50/50",              "Flip a coin — random buff OR random nerf. Good luck.",
+            PerkRarity.Epic,      PerkType.Perk, flag:"FIFTY_FIFTY"),
     };
 
     static readonly float[] RarityWeights = { 0.40f, 0.30f, 0.20f, 0.08f, 0.02f };
@@ -189,9 +191,9 @@ public static class PerkDatabase
     {
         float r = Random.value;
         List<PerkDefinition> pool;
-        if      (r < 0.65f) pool = Nerfs;
-        else if (r < 0.90f) pool = Buffs;
-        else if (r < 0.96f) pool = NegativePerks;
+        if      (r < 0.63f) pool = Nerfs;
+        else if (r < 0.88f) pool = Buffs;
+        else if (r < 0.94f) pool = NegativePerks;
         else                pool = PositivePerks;
         return PickFromPool(pool);
     }
@@ -211,4 +213,95 @@ public static class PerkDatabase
         }
         return byRarity[0].Count > 0 ? byRarity[0][Random.Range(0, byRarity[0].Count)] : pool[0];
     }
+
+    // Maps perk id → filename inside "Assets/sprites buffs/"
+    public static readonly System.Collections.Generic.Dictionary<string, string> SpriteMap =
+        new System.Collections.Generic.Dictionary<string, string>
+    {
+        { "adrenaline",   "adrenaline.png" },
+        { "apex",         "apex predator.png" },
+        { "blessed",      "blessed.png" },
+        { "crippled",     "crippled.png" },
+        { "cursed_soul",  "cursed soul.png" },
+        { "doomed",       "doomed.png" },
+        { "double_jump",  "double jump.png" },
+        { "explosive_r",  "explosive.png" },
+        { "explosive_d",  "explosive.png" },
+        { "forsaken",     "forsaken.png" },
+        { "fortune",      "fortunes smile.png" },
+        { "frenzy",       "frenzy.png" },
+        { "glass_bones",  "glass bones.png" },
+        { "lead_boots",   "lead boots.png" },
+        { "leech",        "leech.png" },
+        { "light_feet",   "light feet.png" },
+        { "one_man_army", "one man army.png" },
+        { "paranoia",     "paranoia.png" },
+        { "piercing",     "piercing.png" },
+        { "slow_feet",    "slow feet.png" },
+        { "slow_field",   "slow field.png" },
+        { "thin_clip",    "thin clip.png" },
+        { "thin_skin",    "thin skin.png" },
+
+        { "bb_pellets",    "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "one_shot",      "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "last_shot",     "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "railgun_round", "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "heavy_round",   "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "arsenal",       "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "fat_bullets",   "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "inf_ammo",      "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "ammo_conserve", "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "warp_ammo",     "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "scatter_shot",  "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "heavy_ammo",    "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "large_caliber", "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "slow_ammo",     "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "well_stocked",  "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+        { "ammo_cache",    "bb pellets _ one shot _ railgun round _ heavy round _ arsenal _ fat bullets _ infinite mag _ ammo saver _ warp ammo _ scatter shot _ heavy ammo _ large calliber _ slow ammo.png" },
+
+        { "cannonball",    "cannonball _ glass cannon.png" },
+        { "glass_cannon2", "cannonball _ glass cannon.png" },
+
+        { "empty_handed",  "empty handed _ fumble hands _ soft hands.png" },
+        { "fumble",        "empty handed _ fumble hands _ soft hands.png" },
+        { "soft_hands",    "empty handed _ fumble hands _ soft hands.png" },
+
+        { "god_speed",     "godspeed _ swift _ gods touch _ hypersonic.png" },
+        { "swift",         "godspeed _ swift _ gods touch _ hypersonic.png" },
+        { "gods_touch",    "godspeed _ swift _ gods touch _ hypersonic.png" },
+        { "hypersonic",    "godspeed _ swift _ gods touch _ hypersonic.png" },
+        { "blazing",       "godspeed _ swift _ gods touch _ hypersonic.png" },
+        { "phantom",       "godspeed _ swift _ gods touch _ hypersonic.png" },
+        { "big_shot",      "godspeed _ swift _ gods touch _ hypersonic.png" },
+        { "high_velocity", "godspeed _ swift _ gods touch _ hypersonic.png" },
+
+        { "hex",           "hex _ transcendence.png" },
+        { "transcend",     "hex _ transcendence.png" },
+
+        { "immortal",      "immortal skin _ thick skin _ reinforced.png" },
+        { "thick_skin",    "immortal skin _ thick skin _ reinforced.png" },
+        { "reinforced",    "immortal skin _ thick skin _ reinforced.png" },
+        { "armored",       "immortal skin _ thick skin _ reinforced.png" },
+        { "fortress",      "immortal skin _ thick skin _ reinforced.png" },
+        { "iron_skin",     "immortal skin _ thick skin _ reinforced.png" },
+
+        { "regeneration",  "regeneration _ field medic _ trickle heal.png" },
+        { "field_medic",   "regeneration _ field medic _ trickle heal.png" },
+        { "trickle",       "regeneration _ field medic _ trickle heal.png" },
+
+        { "rusty_aim",     "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+        { "fumbler",       "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+        { "sniper_perk",   "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+        { "sharp_eye",     "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+        { "precision",     "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+        { "deadly",        "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+        { "dull_blade",    "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+        { "weakened",      "rusty aim _ fumbler _ sniper _ sharp eye _ precision.png" },
+
+        { "shrink_ray",    "shrink ray _ micro shot.png" },
+        { "micro_shot",    "shrink ray _ micro shot.png" },
+
+        { "double_consume","trigger happy _ quick draw.png" },
+        { "quick_draw",    "trigger happy _ quick draw.png" },
+    };
 }

@@ -9,6 +9,9 @@ public class Crosshair : MonoBehaviour
     RawImage _img;
     Shooter  _shooter;
     Texture2D _blank;
+    Texture2D _circleTex;
+    int       _cachedRadius = -1;
+
 
     void Start()
     {
@@ -20,6 +23,12 @@ public class Crosshair : MonoBehaviour
         _blank.SetPixel(0, 0, Color.white);
         _blank.Apply();
     }
+
+void OnDestroy()
+    {
+        if (_circleTex != null) Destroy(_circleTex);
+    }
+
 
     bool IsShotgun()
     {
@@ -63,25 +72,32 @@ public class Crosshair : MonoBehaviour
         Rect(cx - 1f, cy - 1f, 2f, 2f);
     }
 
-    void DrawCircle(float cx, float cy, float heat)
+void DrawCircle(float cx, float cy, float heat)
     {
-        int radius  = Mathf.RoundToInt(Mathf.Lerp(10f, 36f, heat));
-        int thick   = 2;
-        int size    = (radius + thick + 2) * 2;
+        int radius = Mathf.RoundToInt(Mathf.Lerp(10f, 36f, heat));
+        int thick  = 2;
 
-        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        var px  = new Color32[size * size];
-        int c   = size / 2;
-        for (int y = 0; y < size; y++)
-        for (int x = 0; x < size; x++)
+        if (radius != _cachedRadius)
         {
-            float d     = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
-            float alpha = 1f - Mathf.Clamp01(Mathf.Abs(d - radius) - thick + 1f);
-            px[y * size + x] = new Color32(255, 255, 255, (byte)(alpha * 220));
+            if (_circleTex != null) Destroy(_circleTex);
+            int size = (radius + thick + 2) * 2;
+            _circleTex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            var px = new Color32[size * size];
+            int c  = size / 2;
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float d     = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                float alpha = 1f - Mathf.Clamp01(Mathf.Abs(d - radius) - thick + 1f);
+                px[y * size + x] = new Color32(255, 255, 255, (byte)(alpha * 220));
+            }
+            _circleTex.SetPixels32(px);
+            _circleTex.Apply();
+            _cachedRadius = radius;
         }
-        tex.SetPixels32(px); tex.Apply();
-        GUI.DrawTexture(new Rect(cx - c, cy - c, size, size), tex);
-        Destroy(tex);
+
+        int half = _circleTex.width / 2;
+        GUI.DrawTexture(new UnityEngine.Rect(cx - half, cy - half, _circleTex.width, _circleTex.height), _circleTex);
     }
 
     void Rect(float x, float y, float w, float h) =>

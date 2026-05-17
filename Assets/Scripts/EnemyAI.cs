@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
-[RequireComponent(typeof(CapsuleCollider))]
+[RequireComponent(typeof(BoxCollider))]
 public class EnemyAI : MonoBehaviour
 {
     public static event System.Action OnAnyEnemyDied;
@@ -49,12 +49,26 @@ public class EnemyAI : MonoBehaviour
         _patrolCenter = transform.position;
         _lastPos      = transform.position;
 
-        // Match hitbox to thin sprite: tall but very narrow
-        var cap = GetComponent<CapsuleCollider>();
-        cap.height    = 2.4f;
-        cap.radius    = 0.48f;
-        cap.center    = new Vector3(0f, 1.2f, 0f);
-        cap.direction = 1; // Y-axis
+        // Replace any stale CapsuleCollider with a BoxCollider
+        var oldCap = GetComponent<CapsuleCollider>();
+        if (oldCap != null) Destroy(oldCap);
+
+        var box    = GetComponent<BoxCollider>() ?? gameObject.AddComponent<BoxCollider>();
+        box.center = new Vector3(0f, 1.2f, 0f);
+        box.size   = new Vector3(0.55f, 2.5f, 0.55f);
+
+        var bodyHitbox        = gameObject.AddComponent<Hitbox>();
+        bodyHitbox.isHeadshot = false;
+        bodyHitbox.enemy      = this;
+
+        var headGO = new GameObject("HeadHitbox");
+        headGO.transform.SetParent(transform);
+        headGO.transform.localPosition = new Vector3(0f, 2.25f, 0f);
+        var headCol        = headGO.AddComponent<SphereCollider>();
+        headCol.radius     = 0.32f;
+        var headHitbox     = headGO.AddComponent<Hitbox>();
+        headHitbox.isHeadshot = true;
+        headHitbox.enemy      = this;
 
         BuildModel();
         EquipWeapon();

@@ -41,6 +41,8 @@ public class GunPickup : MonoBehaviour
     Vector3             _weaponOrigin;
     Vector3             _prevBobPos;
     CharacterController _cc;
+    FPSController _fps;
+
 
     static PhysicsMaterial _deadBounce;
 
@@ -63,9 +65,9 @@ void Start()
         SetupWeaponUI();
         _weaponOrigin = weaponRoot.localPosition;
         _cc           = GetComponent<CharacterController>();
-        _prevBobPos   = transform.position;;
+        _fps          = GetComponent<FPSController>();
+        _prevBobPos   = transform.position;
 
-        // Add aura to any gun already sitting on the floor
         foreach (var ws in FindObjectsByType<WeaponStats>(FindObjectsSortMode.None))
             if (!ws.transform.IsChildOf(weaponRoot))
                 if (ws.GetComponent<GunAura>() == null)
@@ -175,8 +177,9 @@ void ApplyWeaponBob()
                         / Time.deltaTime;
         _prevBobPos = pos;
 
-        bool grounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, 1.5f);
-        bool moving   = grounded && speed > 0.5f;
+        bool grounded  = _cc != null && _cc.isGrounded;
+        bool crouching = _fps != null && _fps.IsCrouching;
+        bool moving    = grounded && !crouching && speed > 0.5f;
 
         _bobAmp = Mathf.Lerp(_bobAmp, moving ? 1f : 0f, Time.deltaTime * 10f);
         if (_bobAmp > 0.001f) _bobT += Time.deltaTime * bobFrequency;
@@ -193,7 +196,7 @@ void ApplyWeaponBob()
     {
         RaycastHit hit;
         if (!Physics.SphereCast(cam.transform.position, sphereRadius,
-                                 cam.transform.forward, out hit, pickupRange))
+                                 cam.transform.forward, out hit, pickupRange, ~(1 << 9)))
             return null;
 
         Transform t = hit.transform;

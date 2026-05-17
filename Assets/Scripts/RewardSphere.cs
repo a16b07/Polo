@@ -32,13 +32,31 @@ public class RewardSphere : MonoBehaviour
         aura.range         = 4f;
         aura.pulseSpeed    = 3f;
 
-        var mr  = GetComponent<MeshRenderer>();
+        var mr = GetComponent<MeshRenderer>();
         if (mr != null)
         {
             var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = new Color(0.1f, 0.9f, 0.2f);
-            mat.EnableKeyword("_EMISSION");
-            mat.SetColor("_EmissionColor", new Color(0f, 2f, 0.3f));
+            mat.color = Color.white;
+
+#if UNITY_EDITOR
+            var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/text/fourloko.png");
+#else
+            Texture2D tex = null;
+#endif
+            if (tex != null)
+            {
+                mat.SetTexture("_BaseMap", tex);
+                mat.EnableKeyword("_EMISSION");
+                mat.SetTexture("_EmissionMap", tex);
+                mat.SetColor("_EmissionColor", Color.white * 0.4f);
+            }
+            else
+            {
+                mat.color = new Color(0.1f, 0.9f, 0.2f);
+                mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", new Color(0f, 2f, 0.3f));
+            }
+
             mr.material = mat;
         }
     }
@@ -50,8 +68,9 @@ public class RewardSphere : MonoBehaviour
 
         // SphereCast from camera — same style as GunPickup
         _showPrompt = false;
+        int mask = ~(1 << 9); // ignore Props layer so furniture doesn't block detection
         if (Physics.SphereCast(_cam.transform.position, 0.3f, _cam.transform.forward,
-                               out RaycastHit hit, grabRange)
+                               out RaycastHit hit, grabRange, mask)
             && hit.collider.gameObject == gameObject)
         {
             _showPrompt = true;

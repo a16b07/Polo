@@ -11,14 +11,17 @@ public class LightBlinker : MonoBehaviour
     public float colorCycleSpeed = 0.04f;  // hue units per second (slow drift)
     [Range(0f, 1f)]
     public float hueOffset = 0f;           // stagger per object so they differ
+    public bool keepColor = false;
 
     Light        _light;
     MeshRenderer _renderer;
     Material     _mat;
+    Color        _originalColor;
 
     void Start()
     {
         _light = GetComponent<Light>();
+        _originalColor = _light.color;
         _light.range  = 8f;
         _light.shadows = LightShadows.None;
 
@@ -35,13 +38,19 @@ public class LightBlinker : MonoBehaviour
 
     void Update()
     {
-        float freq = bpm / 60f;
-
-        // Sharp strobe: sin raised to high power gives brief bright flashes
+        float freq  = bpm / 60f;
         float pulse = Mathf.Pow(Mathf.Abs(Mathf.Sin(Time.time * Mathf.PI * freq)), 6f);
 
-        float hue = (hueOffset + Time.time * colorCycleSpeed) % 1f;
-        Color col = Color.HSVToRGB(hue, 1f, 1f);
+        Color col;
+        if (keepColor)
+        {
+            col = _originalColor;
+        }
+        else
+        {
+            float hue = (hueOffset + Time.time * colorCycleSpeed) % 1f;
+            col = Color.HSVToRGB(hue, 1f, 1f);
+        }
 
         _light.color     = col;
         _light.intensity = pulse * maxIntensity;
